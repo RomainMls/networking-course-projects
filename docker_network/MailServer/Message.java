@@ -1,5 +1,6 @@
 /*
- * Représente un message pour pouvoir stocker UID, flags, taille, chemin du
- * fichier
+ * Représente un message pour pouvoir stocker UID, flags (seen, deleted,...),
+ * taille en octets, chemin du fichier
+ * Sur disque un msg est nommé UID.msg
  * 
  */
