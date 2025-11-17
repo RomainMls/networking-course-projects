@@ -78,6 +78,7 @@ services:
     volumes:
       - ./frr/router_info.conf:/etc/frr/frr.conf
       - ./frr/vtysh.conf:/etc/frr/vtysh.conf
+      - ./frr/daemons:/etc/frr/daemons
       - ./frr/log:/var/log/frr
     restart: always
 
@@ -93,6 +94,7 @@ services:
     volumes:
       - ./frr/router_gembloux.conf:/etc/frr/frr.conf
       - ./frr/vtysh.conf:/etc/frr/vtysh.conf
+      - ./frr/daemons:/etc/frr/daemons
       - ./frr/log:/var/log/frr
     restart: always
 

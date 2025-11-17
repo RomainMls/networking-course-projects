@@ -12,8 +12,7 @@ ns              IN  A    10.0.1.2
 mail            IN  A    10.0.1.7
 @               IN  MX   10 mail.uliege.be.
 
-gembloux.uliege.be. IN NS ns.gembloux.uliege.be.
-ns.gembloux.uliege.be. IN A 10.0.2.2
+gembloux.uliege.be. IN MX 10 mail.gembloux.uliege.be.
+mail.gembloux.uliege.be. IN A 10.0.2.7
 
-info.uliege.be. IN NS ns.info.uliege.be.
-ns.info.uliege.be. IN A 10.0.3.2
+info.uliege.be. IN MX 10 mail.uliege.be.
