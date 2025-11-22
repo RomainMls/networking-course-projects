@@ -4,7 +4,6 @@
  */
 
 public class SMTPHandler extends Handler {
-    private ConnectionIO connectionIO;
 
     public SMTPHandler(ConnectionIO connecionIO) {
         super(connecionIO);
