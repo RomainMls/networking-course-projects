@@ -1,5 +1,6 @@
 /*
  * lookup MX
  * lookup A
- * déterminer l'ip du serveur cible
+ * déterminer l'ip de la cible
+ * décider des chemins, direct, relai, erreur
  */
