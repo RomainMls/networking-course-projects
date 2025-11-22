@@ -1,7 +1,9 @@
 /*
  * Super classe des handlers spécifiques
- * Définit le comportement Lire cmd => Gérer la commande => Répondre => Lire cmd => Gérer la commande => Répondre ...
+ * Définit le comportement Lire cmd => Gérer la commande => Lire cmd => Gérer la commande ...
  * Si command DATA par exemple qui nécessite plusieurs readLine, on lit DATA et puis le handler spécifique passera en mode lecture du contenu
+ * On n'envoit pas la réponse ici car des fois la commande nécéssite plusieurs réponses (ex du RETR dans POP)
+ * handleCommand gère les envois de réponses
  */
 public abstract class Handler {
     protected ConnectionIO connectionIO;
@@ -14,9 +16,7 @@ public abstract class Handler {
 
     public abstract void sendGreeting();
 
-    public abstract String handleCommand(String command);
-
-    public abstract void sendResponse(String message);
+    public abstract void handleCommand(String command);
 
     public void handleSession() {
         sendGreeting();
@@ -24,9 +24,7 @@ public abstract class Handler {
             String message = connectionIO.readLine();
             if (message == null)
                 break;
-            String response = handleCommand(message);
-            if (response != null)
-                sendResponse(response);
+            handleCommand(message);
         }
     }
 }

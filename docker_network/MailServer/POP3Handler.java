@@ -18,14 +18,8 @@ public class POP3Handler extends Handler {
     }
 
     @Override
-    public String handleCommand(String command) {
+    public void handleCommand(String command) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'handleCommand'");
-    }
-
-    @Override
-    public void sendResponse(String command) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'sendResponse'");
     }
 }
