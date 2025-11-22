@@ -11,3 +11,74 @@
  * Un fichier metadata par Mailbox pour stocker l'UIDVALIDITY de la mailbox, le
  * nextUID, UID des msg et leur flag + taille
  */
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Mailbox {
+    private List<Message> messages = new ArrayList<Message>();
+    private int nextUID = 1;
+    private int UIDVALIDITY;
+
+    public Mailbox() {
+    }
+
+    public void setUidValidity(int uidValidity) {
+        this.UIDVALIDITY = uidValidity;
+    }
+
+    public void setNextUid(int nextUid) {
+        this.nextUID = nextUid;
+    }
+
+    public int getUidValidity() {
+        return UIDVALIDITY;
+    }
+
+    public int getUidNext() {
+        return nextUID;
+    }
+
+    public List<Message> getAllMessages() {
+        return this.messages;
+    }
+
+    public void addMessage(Message message) {
+        message.setUid(nextUID);
+        nextUID++;
+        messages.add(message);
+    }
+
+    public void addLoadedMessage(Message message) {
+        messages.add(message);
+    }
+
+    public Message getMessageByUid(int uid) {
+        for (Message message : messages) {
+            if (uid == message.getUid())
+                return message;
+        }
+        return null;
+    }
+
+    public Message getMessageByIndex(int index) {
+        return messages.get(index - 1);
+    }
+
+    public void expunge() {
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            if (messages.get(i).getFlags().contains("\\Deleted"))
+                messages.remove(i);
+        }
+
+    }
+
+    // pour IMAP EXISTS
+    public int getExistsCount() {
+        int count = 0;
+        for (Message message : messages)
+            if (!message.getFlags().contains("\\Deleted"))
+                count++;
+        return count;
+    }
+}

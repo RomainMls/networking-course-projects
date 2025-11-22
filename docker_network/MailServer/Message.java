@@ -18,7 +18,10 @@ public class Message {
     private String subject;
     private List<String> dataLines = new ArrayList<String>();
 
-    public Message(int uid) {
+    public Message() {
+    }
+
+    public void setUid(int uid) {
         this.uid = uid;
     }
 
