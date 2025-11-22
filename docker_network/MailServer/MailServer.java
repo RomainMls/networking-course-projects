@@ -42,16 +42,7 @@ public class MailServer {
 
                     }
                 } catch (IOException e) {
-                    System.out.println("Could not start server: " + e.getMessage());
-
-                } finally {
-                    if (serverSocket != null) {
-                        try {
-                            serverSocket.close();
-                        } catch (IOException e) {
-                            System.out.println("Error while closing server socket: " + e.getMessage());
-                        }
-                    }
+                    System.out.println("Could not start" + protocol.toString() + "server: " + e.getMessage());
                 }
             }
         };

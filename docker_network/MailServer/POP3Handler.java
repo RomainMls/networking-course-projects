@@ -1,12 +1,13 @@
 /*
  * détecte une commande, exécuter ce qu'elle doit faire, envoyer réponse
- * HELO, MAIL FROM, RCPT TO, DATA
+ * USER, PASS (appelle User pour vérifier)
+ * STAT, LIST, RETR, DELE, QUIT
+ * 
  */
 
-public class SMTPHandler extends Handler {
-    private ConnectionIO connectionIO;
+public class POP3Handler extends Handler {
 
-    public SMTPHandler(ConnectionIO connecionIO) {
+    public POP3Handler(ConnectionIO connecionIO) {
         super(connecionIO);
     }
 
