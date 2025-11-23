@@ -5,7 +5,7 @@ public class User {
     private static final String[] allowedUsers = { "dcd@gembloux.uliege.be", "vj@gembloux.uliege.be",
             "dcd@info.uliege.be",
             "vj@info.uliege.be", "dcd@uliege.be", "vj@uliege.be" };
-    private String user;
+    private String user; // email address
 
     public User(String user) {
         this.user = user;

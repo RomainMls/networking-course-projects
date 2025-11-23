@@ -13,3 +13,67 @@
  * Client parle à A, et A répond, A parle à B et B répond,... (rejoue la
  * conversation)
  */
+
+import java.io.IOException;
+import java.net.Socket;
+
+public class SMTPTransmitter {
+    private String localDomain;
+
+    public SMTPTransmitter(String domain) {
+        this.localDomain = domain;
+    }
+
+    public void forward(Message message, String rcpt) {
+        if (!rcpt.contains("@"))
+            return;
+        String rcptDomain;
+        String[] parts = rcpt.split("@");
+        if (parts.length == 2)
+            rcptDomain = parts[1];
+        else
+            return;
+
+        // trouver l'host via DomainResolver et rcptDomain
+        String host = "0.0.0.0"; // String temporaire
+        try {
+            Socket socket = new Socket(host, 25);
+            ConnectionIO connectionIO = new ConnectionIO(socket);
+
+            // Lire le greeting
+            connectionIO.readLine();
+
+            connectionIO.writeMessage("HELO " + localDomain);
+            connectionIO.readLine();
+
+            connectionIO.writeMessage("MAIL FROM:<" + message.getFrom() + ">");
+            connectionIO.readLine();
+
+            connectionIO.writeMessage("RCPT TO:<" + rcpt + ">");
+            connectionIO.readLine();
+
+            connectionIO.writeMessage("DATA");
+            connectionIO.readLine();
+
+            connectionIO.writeMessage("From: " + message.getFrom());
+            connectionIO.writeMessage("To: " + rcpt);
+            connectionIO.writeMessage("Subject: " + message.getSubject());
+            connectionIO.writeMessage("");
+
+            for (String dataLine : message.getDataLines())
+                connectionIO.writeMessage(dataLine);
+
+            connectionIO.writeMessage(".");
+            connectionIO.readLine();
+
+            connectionIO.writeMessage("QUIT");
+            connectionIO.readLine();
+
+            connectionIO.close();
+
+        } catch (IOException e) {
+            System.out.println("Error while SMTP forwarding : " + e.getMessage());
+        }
+
+    }
+}
