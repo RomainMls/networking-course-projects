@@ -34,8 +34,9 @@ public class SMTPTransmitter {
         else
             return;
 
-        // trouver l'host via DomainResolver et rcptDomain
-        String host = "0.0.0.0"; // String temporaire
+        String host = DomainResolver.resolveSmtpServer(rcptDomain);
+        if (host == null)
+            return;
         try {
             Socket socket = new Socket(host, 25);
             ConnectionIO connectionIO = new ConnectionIO(socket);
