@@ -11,9 +11,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MailServer {
+    private static String DOMAIN;
+    private static int MAXTHREADS;
+
     public static void main(String[] args) {
-        final String DOMAIN = args[0];
-        final int MAXTHREADS = Integer.valueOf(args[1]);
+        DOMAIN = args[0];
+        MAXTHREADS = Integer.valueOf(args[1]);
 
         ExecutorService threadPool = Executors.newFixedThreadPool(MAXTHREADS);
 
@@ -47,5 +50,9 @@ public class MailServer {
             }
         };
         return thread;
+    }
+
+    public static String getDomain() {
+        return DOMAIN;
     }
 }

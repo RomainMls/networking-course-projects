@@ -34,4 +34,9 @@ public class User {
     public String getUserName() {
         return user.split("@")[0];
     }
+
+    @Override
+    public String toString() {
+        return getUserName();
+    }
 }
