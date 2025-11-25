@@ -3,6 +3,7 @@
  * HELO, MAIL FROM, RCPT TO, DATA
  */
 import java.util.ArrayList;
+import java.io.*;
 
 public class SMTPHandler extends Handler {
     private boolean ready;
@@ -31,6 +32,19 @@ public class SMTPHandler extends Handler {
         String[] split = command.split("\\s+");
         if(split.length < 1){
             connectionIO.writeMessage("BAD");
+            return;
+        }
+        if(reading){
+            if(command.equals(".")){
+                sendMessage(currentMsg);
+                reading = false;
+                from = null;
+                rcpts = null;
+                currentMsg = null;
+                connectionIO.writeMessage("250 OK Message accepted for delivery");
+                return;
+            }
+            currentMsg.addDataLine(command);
             return;
         }
 
@@ -93,18 +107,6 @@ public class SMTPHandler extends Handler {
             connectionIO.writeMessage("250 OK");
             return;
         }
-        if(reading){
-            if(command.equals(".")){
-                sendMessage(currentMsg);
-                reading = false;
-                from = null;
-                rcpts = null;
-                currentMsg = null;
-                return;
-            }
-            currentMsg.addDataLine(command);
-            return;
-        }
         connectionIO.writeMessage("BAD");
         return;
     }
@@ -117,9 +119,13 @@ public class SMTPHandler extends Handler {
                 continue;
 
             if(MailServer.getDomain().equals(domain)){
+                System.out.println("1");
                 Mailbox userMailbox = MailStore.loadMailbox(user, "INBOX");
+                System.out.println("2");
                 userMailbox.addMessage(msg);
+                System.out.println("3");
                 MailStore.saveMailbox(user, "INBOX", userMailbox);
+                System.out.println("4");
             }
             else{
                 SMTPTransmitter ts = new SMTPTransmitter(domain);

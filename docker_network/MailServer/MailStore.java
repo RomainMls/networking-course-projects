@@ -57,6 +57,7 @@ import java.util.Set;
 public class MailStore {
     public static Mailbox loadMailbox(User user, String mailboxName) {
         String path = createPathMailboxFromUser(user, mailboxName);
+        createIfNotExists(user, mailboxName);
         Mailbox mailbox = new Mailbox();
         try (BufferedReader reader = new BufferedReader(new FileReader(path.concat("metadata.txt")))) {
 
@@ -311,5 +312,29 @@ public class MailStore {
             message.addDataLine(line);
         }
         return message;
+    }
+
+    private static void createIfNotExists(User user, String mailboxName) {
+        String path = createPathFromUser(user);
+        File file = new File(path);
+        if(!file.exists()){
+            try{
+                file.createNewFile();
+            }
+            catch(IOException e){
+                System.out.println("Error while creating new file :" + e.getMessage());
+            }
+        }
+        String path2 = createPathMailboxFromUser(user, mailboxName);
+        File file2 = new File(path2);
+        if(!file2.exists()){
+            try{
+                file2.createNewFile();
+            }
+            catch(IOException e){
+                System.out.println("Error while creating new file :" + e.getMessage());
+            }
+            createMailbox(user, mailboxName);
+        }
     }
 }

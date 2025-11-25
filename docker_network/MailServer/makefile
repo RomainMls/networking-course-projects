@@ -1,6 +1,6 @@
 zip: 
-	-rm s2302437.zip
-	zip s2302437.zip *.java report.pdf
+	-rm s2302437-s2300791.zip
+	zip s2302437-s2300791.zip *.java report.pdf
 
 run-test:
 	rm -f *.class

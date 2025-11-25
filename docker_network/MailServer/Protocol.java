@@ -6,7 +6,7 @@ enum Protocol {
     public int getPort() {
         switch (this) {
             case SMTP:
-                return 25;
+                return 999; // to modify
             case POP3:
                 return 110;
             case IMAP:
