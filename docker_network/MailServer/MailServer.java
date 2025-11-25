@@ -45,7 +45,7 @@ public class MailServer {
 
                     }
                 } catch (IOException e) {
-                    System.out.println("Could not start" + protocol.toString() + "server: " + e.getMessage());
+                    System.out.println("Could not start " + protocol.toString() + " server: " + e.getMessage());
                 }
             }
         };
