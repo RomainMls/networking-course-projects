@@ -195,6 +195,7 @@ public class MailStore {
             String name = mailFile;
             for (Message message : allMessages) {
                 if (Integer.parseInt(name.split(".")[0]) == message.getUid()){
+                if (Integer.parseInt(name) == message.getUid()) {
                     exists = true;
                     break;
                 }
@@ -203,6 +204,21 @@ public class MailStore {
                 System.out.println(mailFile);
                 File file = new File(createPathMailboxFromUser(user, mailboxName).concat(mailFile));
                 file.delete();
+            }
+
+            StringBuilder content = new StringBuilder();
+
+            content.append("UIDVALIDITY: " + mailbox.getUidValidity() + "\n");
+            content.append("NEXTUID: " + mailbox.getUidNext() + "\n");
+            for (Message message : mailbox.getAllMessages())
+                content.append(
+                        message.getUid() + " " + setFlagsToString(message.getFlags()) + " " + message.size() + "\n");
+
+            try (BufferedWriter messageWriter = new BufferedWriter(
+                    new FileWriter(createPathMailboxFromUser(user, mailboxName).concat("metadata.txt")))) {
+                messageWriter.write(content.toString());
+            } catch (IOException e) {
+                System.out.println("Error while writing message in file : " + e.getMessage());
             }
         }
     }
@@ -316,9 +332,9 @@ public class MailStore {
         return message;
     }
 
-    private static void createMailboxIfNotExists(User user, String mailboxName){
+    private static void createMailboxIfNotExists(User user, String mailboxName) {
         File file = new File(createPathMailboxFromUser(user, mailboxName));
-        if(!file.exists()){
+        if (!file.exists()) {
             createMailbox(user, mailboxName);
         }
     }
