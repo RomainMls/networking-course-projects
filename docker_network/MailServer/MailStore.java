@@ -95,10 +95,6 @@ public class MailStore {
             String messagePath = path + message.getUid() + ".msg";
 
             StringBuilder messageContent = new StringBuilder();
-            messageContent.append("FROM: " + message.getFrom() + "\n");
-            messageContent.append("RCPTS: " + listToString(message.getRcpts()) + "\n");
-            messageContent.append("SUBJECT: " + message.getSubject() + "\n");
-            messageContent.append("\n");
             for (String dataLine : message.getDataLines())
                 messageContent.append(dataLine + "\n");
             try (BufferedWriter messageWriter = new BufferedWriter(new FileWriter(messagePath))) {
@@ -194,7 +190,7 @@ public class MailStore {
             boolean exists = false;
             String name = mailFile;
             for (Message message : allMessages) {
-                if (Integer.parseInt(name.split(".")[0]) == message.getUid()){
+                if (Integer.parseInt(name.split(".")[0]) == message.getUid()) {
                     exists = true;
                     break;
                 }
@@ -300,41 +296,17 @@ public class MailStore {
     private static Message readMessage(Message message, BufferedReader reader) throws IOException {
         String line;
 
-        line = reader.readLine();
-        if (line != null && line.startsWith("FROM:")) {
-            String from = line.substring("FROM:".length()).trim();
-            message.setFrom(from);
-        }
-        line = reader.readLine();
-        if (line != null && line.startsWith("RCPTS:")) {
-            String rcpts = line.substring("RCPTS:".length()).trim();
-            if (!rcpts.isEmpty()) {
-                String[] rctpsTab = rcpts.split("\\s+");
-                for (String rcpt : rctpsTab) {
-                    message.addRcpt(rcpt);
-                }
-            }
-        }
-
-        line = reader.readLine();
-        if (line != null && line.startsWith("SUBJECT:")) {
-            String subject = line.substring("SUBJECT:".length()).trim();
-            message.setSubject(subject);
-        }
-
-        reader.readLine(); // Read the empty line
-
         while ((line = reader.readLine()) != null) {
             message.addDataLine(line);
         }
+        message.extractSubject();
         return message;
     }
 
-    private static void createMailboxIfNotExists(User user, String mailboxName){
+    private static void createMailboxIfNotExists(User user, String mailboxName) {
         File file = new File(createPathMailboxFromUser(user, mailboxName));
-        if(!file.exists()){
+        if (!file.exists()) {
             createMailbox(user, mailboxName);
         }
     }
 }
-

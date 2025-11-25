@@ -80,4 +80,16 @@ public class Message {
         }
         return size;
     }
+
+    public void extractSubject() {
+        for (String dataLine : this.getDataLines()) {
+            if (dataLine.isEmpty())
+                break;
+
+            if (dataLine.startsWith("Subject:")) {
+                this.setSubject(dataLine.substring("Subject:".length()).trim());
+                break;
+            }
+        }
+    }
 }
