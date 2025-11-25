@@ -90,7 +90,7 @@ public class MailStore {
         content.append("UIDVALIDITY: " + mailbox.getUidValidity() + "\n");
         content.append("NEXTUID: " + mailbox.getUidNext() + "\n");
         for (Message message : mailbox.getAllMessages()) {
-            content.append(message.getUid() + " " + setFlagsToString(message.getFlags()) + " " + message.size() + "\n");
+            content.append(message.getUid() + " " + setFlagsToString(message.getFlags()) + message.size() + "\n");
 
             String messagePath = path + message.getUid() + ".msg";
 
@@ -206,7 +206,7 @@ public class MailStore {
             content.append("NEXTUID: " + mailbox.getUidNext() + "\n");
             for (Message message : mailbox.getAllMessages())
                 content.append(
-                        message.getUid() + " " + setFlagsToString(message.getFlags()) + " " + message.size() + "\n");
+                        message.getUid() + " " + setFlagsToString(message.getFlags()) + message.size() + "\n");
 
             try (BufferedWriter messageWriter = new BufferedWriter(
                     new FileWriter(createPathMailboxFromUser(user, mailboxName).concat("metadata.txt")))) {
@@ -226,7 +226,7 @@ public class MailStore {
     }
 
     private static String setFlagsToString(Set<String> flags) {
-        if (flags.isEmpty()) { // Flags1 Flags2 Flags
+        if (flags.isEmpty()) { // Flags1 Flags2 Flags3
             return "";
         }
         StringBuilder string = new StringBuilder();
