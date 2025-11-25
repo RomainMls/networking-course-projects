@@ -39,9 +39,10 @@ public class POP3Handler extends Handler {
                 user = new User(username);
                 if(user.userExists())
                     connectionIO.writeMessage("+OK");
-                else
+                else{
                     connectionIO.writeMessage("BAD");
-
+                    return;
+                }
                 seq = 1;
                 return;
 
@@ -53,8 +54,10 @@ public class POP3Handler extends Handler {
                 if(user.checkPassword(split[1]))
                     connectionIO.writeMessage("+OK Mailbox locked and ready");
 
-                else
+                else{
                     connectionIO.writeMessage("BAD");
+                    return;
+                }
 
                 seq = 2;
                 mailbox = MailStore.loadMailbox(user, "INBOX");
@@ -78,7 +81,7 @@ public class POP3Handler extends Handler {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
-                connectionIO.writeMessage("+OK " + messages.size() + " messages (" + totalBytes + " octects)");
+                connectionIO.writeMessage("+OK " + messages.size() + " messages (" + totalBytes + " octets)");
                 for(int i = 0; i < messages.size(); i++){
                     connectionIO.writeMessage((i+1) + " " + messages.get(i).size());
                 }
@@ -91,12 +94,12 @@ public class POP3Handler extends Handler {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
-                int ref = Integer.parseInt(split[1]);
-                Message msg = messages.get(ref-1);
-                if(msg == null){
+                int ref = Integer.parseInt(split[1]) - 1;
+                if(ref < 0 || ref >= messages.size()){
                     connectionIO.writeMessage("BAD");
                     return;
                 }
+                Message msg = messages.get(ref);
                 for(String line : msg.getDataLines())
                     connectionIO.writeMessage(line);
 
@@ -108,20 +111,22 @@ public class POP3Handler extends Handler {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
-                int ref2 = Integer.parseInt(split[1]);
-                Message msg2 = messages.get(ref2-1);
-                if(msg2 == null){
+                int ref2 = Integer.parseInt(split[1]) - 1;
+                if(ref2 < 0 || ref2 >= messages.size()){
                     connectionIO.writeMessage("BAD");
                     return;
                 }
+                Message msg2 = messages.get(ref2);
                 msg2.addFlag("\\Deleted");
                 connectionIO.writeMessage("+OK Message marked for deletion");
                 return;
 
             case "QUIT":
-                mailbox.expunge();
-                MailStore.expungeMailbox(user, "INBOX", mailbox);
                 connectionIO.writeMessage("+OK Goodbye");
+                if(mailbox != null){
+                    mailbox.expunge();
+                    MailStore.expungeMailbox(user, "INBOX", mailbox);
+                }
                 connectionActive = false;
                 return;
         }

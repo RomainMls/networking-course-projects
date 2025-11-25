@@ -19,7 +19,7 @@ public class SMTPHandler extends Handler {
 
     @Override
     public void sendGreeting() {
-        connectionIO.writeMessage("220 " + MailServer.getDomain() + " Service ready");
+        connectionIO.writeMessage("220 mail." + MailServer.getDomain() + " Service ready");
     }
 
     @Override
@@ -115,19 +115,23 @@ public class SMTPHandler extends Handler {
         for(String rcpt : rcpts){
             User user = new User(rcpt);
             String domain = user.getUserDomain();
-            if(domain == null)
+            if(domain == null || !user.userExists()){
+                System.out.println("Skipping user: " + user);
                 continue;
+            }
 
             if(MailServer.getDomain().equals(domain)){
-                System.out.println("1");
+                System.out.println("Saving message localy for user: " + user);
                 Mailbox userMailbox = MailStore.loadMailbox(user, "INBOX");
-                System.out.println("2");
                 userMailbox.addMessage(msg);
-                System.out.println("3");
                 MailStore.saveMailbox(user, "INBOX", userMailbox);
-                System.out.println("4");
             }
             else{
+                System.out.println("Transmitting message to: " + user);
+                System.out.println("Transmittion disabled");
+                if(true)
+                    return;
+
                 SMTPTransmitter ts = new SMTPTransmitter(domain);
                 ts.forward(msg, rcpt);
             }

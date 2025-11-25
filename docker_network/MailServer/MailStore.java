@@ -33,6 +33,7 @@ import java.util.Set;
         FROM: <from>
         RCPTS: <rcpt1> <rcpt2> ...
         SUBJECT: <subject>
+
         <body line 1>
         <body line 2>
         <body line 3>
@@ -57,7 +58,7 @@ import java.util.Set;
 public class MailStore {
     public static Mailbox loadMailbox(User user, String mailboxName) {
         String path = createPathMailboxFromUser(user, mailboxName);
-        createIfNotExists(user, mailboxName);
+        createMailboxIfNotExists(user, mailboxName);
         Mailbox mailbox = new Mailbox();
         try (BufferedReader reader = new BufferedReader(new FileReader(path.concat("metadata.txt")))) {
 
@@ -88,7 +89,7 @@ public class MailStore {
         content.append("UIDVALIDITY: " + mailbox.getUidValidity() + "\n");
         content.append("NEXTUID: " + mailbox.getUidNext() + "\n");
         for (Message message : mailbox.getAllMessages()) {
-            content.append(message.getUid() + " " + setFlagsToString(message.getFlags()) + message.size() + "\n");
+            content.append(message.getUid() + " " + setFlagsToString(message.getFlags()) + " " + message.size() + "\n");
 
             String messagePath = path + message.getUid() + ".msg";
 
@@ -192,11 +193,12 @@ public class MailStore {
 
         for (String mailFile : mailFiles) {
             boolean exists = false;
-            String name = mailFile.split("\\.")[0];
+            String name = mailFile;
             for (Message message : allMessages) {
-                if (Integer.parseInt(name) == message.getUid())
+                if (Integer.parseInt(name) == message.getUid()){
                     exists = true;
-                break;
+                    break;
+                }
             }
             if (!exists) {
                 File file = new File(createPathMailboxFromUser(user, mailboxName).concat(mailFile));
@@ -314,26 +316,9 @@ public class MailStore {
         return message;
     }
 
-    private static void createIfNotExists(User user, String mailboxName) {
-        String path = createPathFromUser(user);
-        File file = new File(path);
+    private static void createMailboxIfNotExists(User user, String mailboxName){
+        File file = new File(createPathMailboxFromUser(user, mailboxName));
         if(!file.exists()){
-            try{
-                file.createNewFile();
-            }
-            catch(IOException e){
-                System.out.println("Error while creating new file :" + e.getMessage());
-            }
-        }
-        String path2 = createPathMailboxFromUser(user, mailboxName);
-        File file2 = new File(path2);
-        if(!file2.exists()){
-            try{
-                file2.createNewFile();
-            }
-            catch(IOException e){
-                System.out.println("Error while creating new file :" + e.getMessage());
-            }
             createMailbox(user, mailboxName);
         }
     }
