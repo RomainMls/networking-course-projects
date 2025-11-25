@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Set;
 /*
  *
@@ -121,7 +120,7 @@ public class MailStore {
         File[] directories = folder.listFiles(f -> f.isDirectory());
 
         if (directories == null) {
-            return null;
+            return new String[0];
         }
         String[] mailboxes = new String[directories.length];
         for (int i = 0; i < directories.length; i++)
@@ -129,18 +128,20 @@ public class MailStore {
         return mailboxes;
     }
 
-    public static List<String> getListMails(User user, String mailboxName) {
-        File folder = new File(createPathMailboxFromUser(user, mailboxName));
+    public static String[] getListMails(User user, String mailboxName) {
+        File folder = new File(createPathFromUser(user) + "/" + mailboxName);
 
         File[] file = folder.listFiles(f -> f.isFile());
 
         if (file == null) {
-            return null;
+            return new String[0];
         }
-        List<String> files = new ArrayList<String>();
+        String[] files = new String[file.length];
+        int counter = 0;
         for (int i = 0; i < file.length; i++)
             if (file[i].getName().endsWith(".msg")) {
-                files.add(file[i].getName());
+                files[counter] = file[i].getName();
+                counter++;
             }
         return files;
     }
@@ -187,21 +188,19 @@ public class MailStore {
     }
 
     public static void expungeMailbox(User user, String mailboxName, Mailbox mailbox) {
-        List<String> mailFiles = getListMails(user, mailboxName);
+        String[] mailFiles = getListMails(user, mailboxName);
         List<Message> allMessages = mailbox.getAllMessages();
 
         for (String mailFile : mailFiles) {
             boolean exists = false;
             String name = mailFile;
             for (Message message : allMessages) {
-                if (Integer.parseInt(name.split(".")[0]) == message.getUid()){
                 if (Integer.parseInt(name) == message.getUid()) {
                     exists = true;
                     break;
                 }
             }
             if (!exists) {
-                System.out.println(mailFile);
                 File file = new File(createPathMailboxFromUser(user, mailboxName).concat(mailFile));
                 file.delete();
             }
