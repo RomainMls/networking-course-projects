@@ -9,8 +9,6 @@ public class SMTPHandler extends Handler {
     private boolean ready;
     private String clientDomain;
     private String from;
-    private ArrayList<String> rcpts;
-    private boolean reading;
     private Message currentMsg;
 
     public SMTPHandler(ConnectionIO connecionIO) {
@@ -34,20 +32,6 @@ public class SMTPHandler extends Handler {
             connectionIO.writeMessage("BAD");
             return;
         }
-        if (reading) {
-            if (command.equals(".")) {
-                currentMsg.extractSubject();
-                sendMessage(currentMsg);
-                reading = false;
-                from = null;
-                rcpts = null;
-                currentMsg = null;
-                connectionIO.writeMessage("250 OK Message accepted for delivery");
-                return;
-            }
-            currentMsg.addDataLine(command);
-            return;
-        }
 
         switch (split[0]) {
             case "HELO":
@@ -61,17 +45,30 @@ public class SMTPHandler extends Handler {
                 return;
 
             case "DATA":
-                if (from == null || rcpts == null || rcpts.isEmpty()) {
+                if (from == null || currentMsg.getRcpts().isEmpty()) {
+                    System.out.println("line 49");
                     connectionIO.writeMessage("BAD");
                     return;
                 }
                 connectionIO.writeMessage("354 End data with <CRLF>.<CRLF>");
-                currentMsg = new Message();
-                currentMsg.setFrom(from);
-                for (String rcpt : rcpts) {
-                    currentMsg.addRcpt(rcpt);
+                boolean reading = true;
+                while(reading){
+                    String line = connectionIO.readLine();
+                    if(line == null){
+                        connectionActive = false;
+                        return;
+                    }
+                    if(line.equals("."))
+                        reading = false;
+
+                    else
+                        currentMsg.addDataLine(line);
                 }
-                reading = true;
+                currentMsg.extractSubject();
+                sendMessage(currentMsg);
+                from = null;
+                currentMsg = null;
+                connectionIO.writeMessage("250 OK Message accepted for delivery");
                 return;
 
             case "QUIT":
@@ -91,20 +88,23 @@ public class SMTPHandler extends Handler {
                 return;
             }
             connectionIO.writeMessage("250 OK");
-            rcpts = new ArrayList<>();
+            currentMsg = new Message();
+            currentMsg.setFrom(from);
             return;
         }
         if (command.startsWith("RCPT TO:")) {
             if (from == null) {
+                System.out.println("line 92");
                 connectionIO.writeMessage("BAD");
                 return;
             }
             String rcpt = command.substring(command.indexOf(":") + 1);
             if (rcpt == null) {
+                System.out.println("line 98");
                 connectionIO.writeMessage("BAD");
                 return;
             }
-            rcpts.add(rcpt);
+            currentMsg.addRcpt(rcpt);
             connectionIO.writeMessage("250 OK");
             return;
         }
@@ -113,7 +113,7 @@ public class SMTPHandler extends Handler {
     }
 
     private void sendMessage(Message msg) {
-        for (String rcpt : rcpts) {
+        for (String rcpt : currentMsg.getRcpts()) {
             User user = new User(rcpt);
             String domain = user.getUserDomain();
             if (domain == null || !user.userExists()) {
