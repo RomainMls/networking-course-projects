@@ -1,3 +1,4 @@
+
 /*
  * détecte une commande, exécuter ce qu'elle doit faire, envoyer réponse
  * USER, PASS (appelle User pour vérifier)
@@ -24,22 +25,22 @@ public class POP3Handler extends Handler {
 
     @Override
     public void handleCommand(String command) {
-        if(command == null){
+        if (command == null) {
             connectionActive = false;
             return;
         }
         String[] split = command.split("\\s+");
-        switch (split[0]){
+        switch (split[0]) {
             case "USER":
-                if(split.length < 2 || seq != 0){
+                if (split.length < 2 || seq != 0) {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
                 String username = split[1];
                 user = new User(username);
-                if(user.userExists())
+                if (user.userExists())
                     connectionIO.writeMessage("+OK");
-                else{
+                else {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
@@ -47,14 +48,14 @@ public class POP3Handler extends Handler {
                 return;
 
             case "PASS":
-                if(seq != 1){
+                if (seq != 1) {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
-                if(user.checkPassword(split[1]))
+                if (user.checkPassword(split[1]))
                     connectionIO.writeMessage("+OK Mailbox locked and ready");
 
-                else{
+                else {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
@@ -64,12 +65,12 @@ public class POP3Handler extends Handler {
                 return;
 
             case "STAT":
-                if(seq != 2){
+                if (seq != 2) {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
                 totalBytes = 0;
-                for(Message message : messages = mailbox.getAllMessages()){
+                for (Message message : messages = mailbox.getAllMessages()) {
                     totalBytes += message.size();
                 }
                 connectionIO.writeMessage("+OK " + messages.size() + " " + totalBytes);
@@ -77,42 +78,42 @@ public class POP3Handler extends Handler {
                 return;
 
             case "LIST":
-                if(seq != 3){
+                if (seq != 3) {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
                 connectionIO.writeMessage("+OK " + messages.size() + " messages (" + totalBytes + " octets)");
-                for(int i = 0; i < messages.size(); i++){
-                    connectionIO.writeMessage((i+1) + " " + messages.get(i).size());
+                for (int i = 0; i < messages.size(); i++) {
+                    connectionIO.writeMessage((i + 1) + " " + messages.get(i).size());
                 }
                 connectionIO.writeMessage(".");
                 seq = 4;
                 return;
 
             case "RETR":
-                if(seq != 4 || split.length < 2){
+                if (seq != 4 || split.length < 2) {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
                 int ref = Integer.parseInt(split[1]) - 1;
-                if(ref < 0 || ref >= messages.size()){
+                if (ref < 0 || ref >= messages.size()) {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
                 Message msg = messages.get(ref);
-                for(String line : msg.getDataLines())
+                for (String line : msg.getDataLines())
                     connectionIO.writeMessage(line);
 
                 connectionIO.writeMessage(".");
                 return;
 
             case "DELE":
-                if(seq != 4 || split.length < 2){
+                if (seq != 4 || split.length < 2) {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
                 int ref2 = Integer.parseInt(split[1]) - 1;
-                if(ref2 < 0 || ref2 >= messages.size()){
+                if (ref2 < 0 || ref2 >= messages.size()) {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
@@ -123,7 +124,7 @@ public class POP3Handler extends Handler {
 
             case "QUIT":
                 connectionIO.writeMessage("+OK Goodbye");
-                if(mailbox != null){
+                if (mailbox != null) {
                     mailbox.expunge();
                     MailStore.expungeMailbox(user, "INBOX", mailbox);
                 }

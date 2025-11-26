@@ -147,7 +147,7 @@ services:
     networks:
       gembloux_net:
         ipv4_address: 10.0.2.7
-    command: ["java", "MailServer", "gembloux.be", "10"]
+    command: ["java", "MailServer", "gembloux.uliege.be", "10"]
 
   mail_info:
     <<: [*info-template-volume, *mail-template]
@@ -155,13 +155,13 @@ services:
     networks:
       info_net:
         ipv4_address: 10.0.3.7
-    command: ["java", "MailServer", "info.be", "10"]
+    command: ["java", "MailServer", "info.uliege.be", "10"]
 
 # =====================================================
 # === THUNDERBIRD =====================================
 # =====================================================
   thunderbird:
-    <<: *info-template
+    <<: *info-template-volume
     image: jlesage/thunderbird:latest
     container_name: thunderbird
     networks:

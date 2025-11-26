@@ -3,7 +3,6 @@
  * détecte une commande, exécuter ce qu'elle doit faire, envoyer réponse
  * HELO, MAIL FROM, RCPT TO, DATA
  */
-import java.util.ArrayList;
 
 public class SMTPHandler extends Handler {
     private boolean ready;
@@ -50,20 +49,22 @@ public class SMTPHandler extends Handler {
                     connectionIO.writeMessage("BAD");
                     return;
                 }
+
                 connectionIO.writeMessage("354 End data with <CRLF>.<CRLF>");
                 boolean reading = true;
-                while(reading){
+                while (reading) {
                     String line = connectionIO.readLine();
-                    if(line == null){
+                    if (line == null) {
                         connectionActive = false;
                         return;
                     }
-                    if(line.equals("."))
+                    if (line.equals("."))
                         reading = false;
 
                     else
                         currentMsg.addDataLine(line);
                 }
+
                 currentMsg.extractSubject();
                 sendMessage(currentMsg);
                 from = null;
