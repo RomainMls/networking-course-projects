@@ -29,6 +29,16 @@ public class Message {
         return this.uid;
     }
 
+    public int getSequenceNumber(Mailbox mailbox) {
+        List<Message> messages = mailbox.getAllMessages();
+        for (int i = 0; i < messages.size(); i++) {
+            if (messages.get(i).equals(this)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public void addFlag(String flag) {
         this.flags.add(flag);
     }
@@ -39,6 +49,10 @@ public class Message {
 
     public Set<String> getFlags() {
         return this.flags;
+    }
+
+    public void resetFlags() {
+        flags = new HashSet<String>();
     }
 
     public void setFrom(String from) {
@@ -91,5 +105,19 @@ public class Message {
                 break;
             }
         }
+    }
+
+    // "Flags1 Flags2 Flags3"
+    public String setFlagsToString() {
+        if (flags.isEmpty()) {
+            return "";
+        }
+        StringBuilder string = new StringBuilder();
+        for (String flag : flags) {
+            string.append(flag).append(" ");
+        }
+
+        string.deleteCharAt(string.length() - 1);
+        return string.toString();
     }
 }

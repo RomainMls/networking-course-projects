@@ -60,7 +60,7 @@ public class MailStore {
     public static Mailbox loadMailbox(User user, String mailboxName) {
         String path = createPathMailboxFromUser(user, mailboxName);
         createMailboxIfNotExists(user, mailboxName);
-        Mailbox mailbox = new Mailbox();
+        Mailbox mailbox = new Mailbox(mailboxName);
         try (BufferedReader reader = new BufferedReader(new FileReader(path.concat("metadata.txt")))) {
 
             mailbox = readMetadata(mailbox, reader);
@@ -90,7 +90,7 @@ public class MailStore {
         content.append("UIDVALIDITY: " + mailbox.getUidValidity() + "\n");
         content.append("NEXTUID: " + mailbox.getUidNext() + "\n");
         for (Message message : mailbox.getAllMessages()) {
-            content.append(message.getUid() + " " + setFlagsToString(message.getFlags()) + message.size() + "\n");
+            content.append(message.getUid() + " " + message.setFlagsToString() + " " + message.size() + "\n");
 
             String messagePath = path + message.getUid() + ".msg";
 
@@ -182,7 +182,8 @@ public class MailStore {
         }
     }
 
-    public static void expungeMailbox(User user, String mailboxName, Mailbox mailbox) {
+    public static void expungeMailbox(User user, Mailbox mailbox) {
+        String mailboxName = mailbox.getName();
         List<String> mailFiles = getListMails(user, mailboxName);
         List<Message> allMessages = mailbox.getAllMessages();
 
@@ -206,7 +207,7 @@ public class MailStore {
             content.append("NEXTUID: " + mailbox.getUidNext() + "\n");
             for (Message message : mailbox.getAllMessages())
                 content.append(
-                        message.getUid() + " " + setFlagsToString(message.getFlags()) + message.size() + "\n");
+                        message.getUid() + " " + message.setFlagsToString() + " " + message.size() + "\n");
 
             try (BufferedWriter messageWriter = new BufferedWriter(
                     new FileWriter(createPathMailboxFromUser(user, mailboxName).concat("metadata.txt")))) {
@@ -217,36 +218,19 @@ public class MailStore {
         }
     }
 
+    public static void createMailboxIfNotExists(User user, String mailboxName) {
+        File file = new File(createPathMailboxFromUser(user, mailboxName));
+        if (!file.exists()) {
+            createMailbox(user, mailboxName);
+        }
+    }
+
     private static String createPathFromUser(User user) {
         return "mailstore/".concat(user.getUserDomain()).concat("/").concat(user.getUserName().concat("/"));
     }
 
     private static String createPathMailboxFromUser(User user, String mailboxName) {
         return createPathFromUser(user).concat(mailboxName).concat("/");
-    }
-
-    private static String setFlagsToString(Set<String> flags) {
-        if (flags.isEmpty()) { // Flags1 Flags2 Flags3
-            return "";
-        }
-        StringBuilder string = new StringBuilder();
-        for (String flag : flags) {
-            string.append(flag).append(" ");
-        }
-        return string.toString();
-    }
-
-    private static String listToString(List<String> list) {
-        if (list.isEmpty()) {
-            return "";
-        }
-        StringBuilder string = new StringBuilder();
-        for (int i = 0; i < list.size(); i++) {
-            string.append(list.get(i));
-            if (i < list.size() - 1) // No space after the last
-                string.append(" ");
-        }
-        return string.toString();
     }
 
     private static boolean deleteDirectory(String path) {
@@ -301,12 +285,5 @@ public class MailStore {
         }
         message.extractSubject();
         return message;
-    }
-
-    private static void createMailboxIfNotExists(User user, String mailboxName) {
-        File file = new File(createPathMailboxFromUser(user, mailboxName));
-        if (!file.exists()) {
-            createMailbox(user, mailboxName);
-        }
     }
 }

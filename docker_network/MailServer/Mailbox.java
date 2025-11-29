@@ -17,10 +17,12 @@ import java.util.List;
 
 public class Mailbox {
     private List<Message> messages = new ArrayList<Message>();
+    private String name; // INBOX by default
     private int nextUID = 1;
     private int UIDVALIDITY;
 
-    public Mailbox() {
+    public Mailbox(String name) {
+        this.name = name;
     }
 
     public void setUidValidity(int uidValidity) {
@@ -37,6 +39,10 @@ public class Mailbox {
 
     public int getUidNext() {
         return nextUID;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public List<Message> getAllMessages() {
@@ -65,20 +71,26 @@ public class Mailbox {
         return messages.get(index - 1);
     }
 
-    public void expunge() {
+    // Renvoit une liste d'entier pour les index de séquence pour le IMAP expunge
+    public List<Integer> expunge() {
+        List<Integer> sequenceIndex = new ArrayList<Integer>();
+        int nbRemove = 0;
+        for (int i = 0; i < messages.size(); i++) {
+            if (messages.get(i).getFlags().contains("\\Deleted")) {
+                sequenceIndex.add(i - nbRemove);
+                nbRemove++;
+            }
+        }
+
         for (int i = messages.size() - 1; i >= 0; i--) {
             if (messages.get(i).getFlags().contains("\\Deleted"))
                 messages.remove(i);
         }
 
+        return sequenceIndex;
     }
 
-    // pour IMAP EXISTS
     public int getExistsCount() {
-        int count = 0;
-        for (Message message : messages)
-            if (!message.getFlags().contains("\\Deleted"))
-                count++;
-        return count;
+        return messages.size();
     }
 }

@@ -126,7 +126,7 @@ public class POP3Handler extends Handler {
                 connectionIO.writeMessage("+OK Goodbye");
                 if (mailbox != null) {
                     mailbox.expunge();
-                    MailStore.expungeMailbox(user, "INBOX", mailbox);
+                    MailStore.expungeMailbox(user, mailbox);
                 }
                 connectionActive = false;
                 return;
