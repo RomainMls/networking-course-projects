@@ -21,22 +21,33 @@ public class SMTPTransmitter {
     private String localDomain;
 
     public SMTPTransmitter(String domain) {
+        System.out.println("new SMTPHandler for domain: " + domain);
         this.localDomain = domain;
     }
 
     public void forward(Message message, String rcpt) {
-        if (!rcpt.contains("@"))
+        if (!rcpt.contains("@")){
+            System.err.println("Can't forward following adress: " + rcpt);
             return;
+        }
+
         String rcptDomain;
         String[] parts = rcpt.split("@");
         if (parts.length == 2)
             rcptDomain = parts[1];
-        else
-            return;
 
-        String host = DomainResolver.resolveSmtpServer(rcptDomain);
-        if (host == null)
+        else{
+            System.err.println("Can't forward following adress: " + rcpt);
             return;
+        }
+
+        System.out.println("Trying to resolve adress: " + rcpt);
+        String host = DomainResolver.resolveSmtpServer(rcptDomain);
+        if (host == null){
+            System.err.println("Failed to resolve adress: " + rcpt);
+            return;
+        }
+
         try {
             Socket socket = new Socket(host, 25);
             ConnectionIO connectionIO = new ConnectionIO(socket);
@@ -68,7 +79,7 @@ public class SMTPTransmitter {
             connectionIO.close();
 
         } catch (IOException e) {
-            System.out.println("Error while SMTP forwarding : " + e.getMessage());
+            System.err.println("Error while SMTP forwarding : " + e.getMessage());
         }
 
     }

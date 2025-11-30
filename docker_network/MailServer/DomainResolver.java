@@ -19,6 +19,7 @@ public class DomainResolver {
                 Process process = pb.start();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line = reader.readLine();
+                System.err.println("dig response for domain '" + domain + "': " + line);
 
                 if (line != null) {
                     line = line.trim();
@@ -43,6 +44,7 @@ public class DomainResolver {
     public static String resolveSmtpServer(String domain) {
         if (domain.equals(MailServer.getDomain()))
             return null;
+
         else {
             String mx = resolve(domain, "MX");
             if (mx != null)

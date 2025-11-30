@@ -35,7 +35,7 @@ public class ConnectionIO {
             System.err.println("Error while reading input stream: " + e.getMessage());
             return null;
         }
-        System.out.println("Int:\t" + socket + ": " + line);
+        System.out.println("In:\t" + socket + ": " + line);
         return line;
     }
 

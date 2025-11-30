@@ -194,8 +194,17 @@ public class MailStore {
             }
             boolean exists = false;
             String name = mailFile;
+            if(name == null || name.length() == 0){
+                System.err.println("Error in MailStore: null or empty file name");
+                continue;
+            }
             for (Message message : allMessages) {
-                if (Integer.parseInt(name.split(".")[0]) == message.getUid()) {
+                String[] split = name.split("\\.");
+                if(split.length != 2){
+                    System.err.println("Error in MailStore.expungeMailbox: incorrect split of filename: " + name);
+                    continue;
+                }
+                if (Integer.parseInt(split[0]) == message.getUid()) {
                     exists = true;
                     break;
                 }

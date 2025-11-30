@@ -110,9 +110,19 @@ public class IMAPHandler extends Handler {
             return;
         }
         String userName = parts[0];
+        if(userName.startsWith("\"") && userName.endsWith("\"")){
+            userName = userName.substring(1, userName.length() - 1);
+        }
         String password = parts[1];
+        if(password.startsWith("\"") && password.endsWith("\"")){
+            password = password.substring(1, password.length() - 1);
+        }
         user = new User(userName);
 
+        if(!user.userExists()){
+            connectionIO.sendMessage(tag + " NO user does not exist");
+            return;
+        }
         if (!user.checkDomain()) {
             connectionIO.sendMessage(tag + " NO Domain not valid");
             return;
