@@ -16,7 +16,7 @@ public class SMTPHandler extends Handler {
 
     @Override
     public void sendGreeting() {
-        connectionIO.writeMessage("220 mail." + MailServer.getDomain() + " Service ready");
+        connectionIO.sendMessage("220 mail." + MailServer.getDomain() + " Service ready");
     }
 
     @Override
@@ -28,29 +28,30 @@ public class SMTPHandler extends Handler {
 
         String[] split = command.split("\\s+");
         if (split.length < 1) {
-            connectionIO.writeMessage("BAD");
+            connectionIO.sendMessage("BAD");
             return;
         }
 
         switch (split[0]) {
             case "HELO":
+            case "EHLO":
                 if (split.length < 2) {
-                    connectionIO.writeMessage("BAD");
+                    connectionIO.sendMessage("BAD");
                     return;
                 }
                 ready = true;
                 clientDomain = split[1];
-                connectionIO.writeMessage("250 " + MailServer.getDomain() + " greets " + clientDomain);
+                connectionIO.sendMessage("250 " + MailServer.getDomain() + " greets " + clientDomain);
                 return;
 
             case "DATA":
                 if (from == null || currentMsg.getRcpts().isEmpty()) {
                     System.out.println("line 49");
-                    connectionIO.writeMessage("BAD");
+                    connectionIO.sendMessage("BAD");
                     return;
                 }
 
-                connectionIO.writeMessage("354 End data with <CRLF>.<CRLF>");
+                connectionIO.sendMessage("354 End data with <CRLF>.<CRLF>");
                 boolean reading = true;
                 while (reading) {
                     String line = connectionIO.readLine();
@@ -69,47 +70,47 @@ public class SMTPHandler extends Handler {
                 sendMessage(currentMsg);
                 from = null;
                 currentMsg = null;
-                connectionIO.writeMessage("250 OK Message accepted for delivery");
+                connectionIO.sendMessage("250 OK Message accepted for delivery");
                 return;
 
             case "QUIT":
-                connectionIO.writeMessage("221 Bye");
+                connectionIO.sendMessage("221 Bye");
                 connectionActive = false;
                 return;
         }
 
-        if (command.startsWith("MAIL FROM:")) {
+        if (command.startsWith("MAIL FROM:<") && command.endsWith(">")) {
             if (!ready) {
-                connectionIO.writeMessage("BAD");
+                connectionIO.sendMessage("BAD");
                 return;
             }
-            from = command.substring(command.indexOf(":") + 1);
+            from = command.substring(command.indexOf("<") + 1, command.indexOf(">"));
             if (from == null) {
-                connectionIO.writeMessage("BAD");
+                connectionIO.sendMessage("BAD");
                 return;
             }
-            connectionIO.writeMessage("250 OK");
+            connectionIO.sendMessage("250 OK");
             currentMsg = new Message();
             currentMsg.setFrom(from);
             return;
         }
-        if (command.startsWith("RCPT TO:")) {
+        if (command.startsWith("RCPT TO:<") && command.endsWith(">")) {
             if (from == null) {
                 System.out.println("line 92");
-                connectionIO.writeMessage("BAD");
+                connectionIO.sendMessage("BAD");
                 return;
             }
-            String rcpt = command.substring(command.indexOf(":") + 1);
+            String rcpt = command.substring(command.indexOf("<") + 1, command.indexOf(">"));
             if (rcpt == null) {
                 System.out.println("line 98");
-                connectionIO.writeMessage("BAD");
+                connectionIO.sendMessage("BAD");
                 return;
             }
             currentMsg.addRcpt(rcpt);
-            connectionIO.writeMessage("250 OK");
+            connectionIO.sendMessage("250 OK");
             return;
         }
-        connectionIO.writeMessage("BAD");
+        connectionIO.sendMessage("BAD");
         return;
     }
 
@@ -126,12 +127,9 @@ public class SMTPHandler extends Handler {
                 System.out.println("Saving message localy for user: " + user);
                 Mailbox userMailbox = MailStore.loadMailbox(user, "INBOX");
                 userMailbox.addMessage(msg);
-                MailStore.saveMailbox(user, "INBOX", userMailbox);
+                MailStore.saveMailbox(user, userMailbox);
             } else {
                 System.out.println("Transmitting message to: " + user);
-                System.out.println("Transmittion disabled");
-                if (true)
-                    return;
 
                 SMTPTransmitter ts = new SMTPTransmitter(domain);
                 ts.forward(msg, rcpt);

@@ -25,7 +25,7 @@ public class IMAPHandler extends Handler {
 
     @Override
     public void sendGreeting() {
-        connectionIO.writeMessage("* OK IMAP server ready");
+        connectionIO.sendMessage("* OK IMAP server ready");
 
     }
 
@@ -42,12 +42,15 @@ public class IMAPHandler extends Handler {
         String tag = parts[0];
         if (parts.length < 2) {
             if (!tag.isEmpty())
-                connectionIO.writeMessage(tag + " BAD");
+                connectionIO.sendMessage(tag + " BAD");
             else
-                connectionIO.writeMessage("* BAD Missing tag");
+                connectionIO.sendMessage("* BAD Missing tag");
+
+            return;
         }
 
         String cmd = parts[1];
+        cmd = cmd.toUpperCase();
         String args = "";
         if (parts.length >= 3)
             args = parts[2].trim();
@@ -81,21 +84,21 @@ public class IMAPHandler extends Handler {
                 handleClose(tag);
                 break;
             default:
-                connectionIO.writeMessage(tag + " BAD Invalid command");
+                connectionIO.sendMessage(tag + " BAD Invalid command");
         }
     }
 
     private void handleCapability(String tag) {
         if (!isValidState(tag, "CAPABILITY"))
             return;
-        connectionIO.writeMessage("* CAPABILITY IMAP4rev1 UID");
-        connectionIO.writeMessage(tag + " OK CAPABILITY completed");
+        connectionIO.sendMessage("* CAPABILITY IMAP4rev1 UID");
+        connectionIO.sendMessage(tag + " OK CAPABILITY completed");
     }
 
     private void handleNoop(String tag) {
         if (!isValidState(tag, "NOOP"))
             return;
-        connectionIO.writeMessage(tag + " OK NOOP completed");
+        connectionIO.sendMessage(tag + " OK NOOP completed");
     }
 
     private void handleLogin(String tag, String args) {
@@ -103,7 +106,7 @@ public class IMAPHandler extends Handler {
             return;
         String parts[] = args.split("\\s+");
         if (parts.length != 2) {
-            connectionIO.writeMessage(tag + " BAD Invalid arguments");
+            connectionIO.sendMessage(tag + " BAD Invalid arguments");
             return;
         }
         String userName = parts[0];
@@ -111,17 +114,17 @@ public class IMAPHandler extends Handler {
         user = new User(userName);
 
         if (!user.checkDomain()) {
-            connectionIO.writeMessage(tag + " NO Domain not valid");
+            connectionIO.sendMessage(tag + " NO Domain not valid");
             return;
         }
 
         if (!user.checkPassword(password)) {
-            connectionIO.writeMessage(tag + " NO Incorrect password");
+            connectionIO.sendMessage(tag + " NO Incorrect password");
             return;
         }
 
         state = CONNECTED;
-        connectionIO.writeMessage(tag + " OK LOGIN completed");
+        connectionIO.sendMessage(tag + " OK LOGIN completed");
 
         MailStore.createMailboxIfNotExists(user, "INBOX");
     }
@@ -129,10 +132,12 @@ public class IMAPHandler extends Handler {
     private void handleLogout(String tag) {
         if (!isValidState(tag, "LOGOUT"))
             return;
-        connectionIO.writeMessage("* BYE IMAP server logging out");
+        connectionIO.sendMessage("* BYE IMAP server logging out");
 
+        if(selectedMailbox != null)
+            MailStore.saveMailbox(user, selectedMailbox);
         connectionActive = false;
-        connectionIO.writeMessage(tag + " OK LOGOUT completed");
+        connectionIO.sendMessage(tag + " OK LOGOUT completed");
     }
 
     private void handleList(String tag, String args) {
@@ -141,20 +146,20 @@ public class IMAPHandler extends Handler {
 
         String[] parts = args.split("\\s+");
         if (parts.length != 2) {
-            connectionIO.writeMessage(tag + " BAD Invalid arguments");
+            connectionIO.sendMessage(tag + " BAD Invalid arguments");
             return;
         }
 
         String[] listMailboxes = MailStore.getListMailboxes(user);
         if (listMailboxes.length == 0) {
-            connectionIO.writeMessage(tag + " BAD No mailbox existing");
+            connectionIO.sendMessage(tag + " BAD No mailbox existing");
             return;
         }
 
         for (String mailboxName : listMailboxes) {
-            connectionIO.writeMessage("* LIST (\\HasNoChildren) + \"/\" " + mailboxName.toUpperCase());
+            connectionIO.sendMessage("* LIST (\\HasNoChildren) + \"/\" " + mailboxName);
         }
-        connectionIO.writeMessage(tag + " OK LIST completed");
+        connectionIO.sendMessage(tag + " OK LIST completed");
     }
 
     private void handleSelect(String tag, String args) {
@@ -163,7 +168,7 @@ public class IMAPHandler extends Handler {
 
         String[] parts = args.split("\\s+");
         if (parts.length != 1) {
-            connectionIO.writeMessage(tag + " BAD Invalid arguments");
+            connectionIO.sendMessage(tag + " BAD Invalid arguments");
             return;
         }
 
@@ -171,8 +176,8 @@ public class IMAPHandler extends Handler {
         Mailbox mailbox = MailStore.loadMailbox(user, mailboxName);
         int nbMessages = mailbox.getExistsCount();
 
-        connectionIO.writeMessage("* " + nbMessages + " EXISTS");
-        connectionIO.writeMessage(tag + " OK [UIDVALIDITY " + mailbox.getUidValidity() + "] SELECT completed");
+        connectionIO.sendMessage("* " + nbMessages + " EXISTS");
+        connectionIO.sendMessage(tag + " OK [UIDVALIDITY " + mailbox.getUidValidity() + "] SELECT completed");
         selectedMailbox = mailbox;
         state = SELECTED;
     }
@@ -180,7 +185,7 @@ public class IMAPHandler extends Handler {
     private void handleUid(String tag, String args) {
         String[] parts = args.split("\\s+", 2);
         if (parts.length < 2) {
-            connectionIO.writeMessage(tag + " BAD Invalid arguments");
+            connectionIO.sendMessage(tag + " BAD Invalid arguments");
             return;
         }
         if (parts[0].equals("FETCH"))
@@ -188,7 +193,7 @@ public class IMAPHandler extends Handler {
         else if (parts[0].equals("STORE"))
             handleUidStore(tag, args);
         else {
-            connectionIO.writeMessage(tag + " BAD UID does not match UID FETCH or UID STORE");
+            connectionIO.sendMessage(tag + " BAD UID does not match UID FETCH or UID STORE");
             return;
         }
     }
@@ -200,34 +205,34 @@ public class IMAPHandler extends Handler {
         // FETCH-RANGE-dataItems
         String[] parts = args.split("\\s+", 3);
         if (parts.length != 3) {
-            connectionIO.writeMessage(tag + " BAD Invalid arguments");
+            connectionIO.sendMessage(tag + " BAD Invalid arguments");
             return;
         }
 
         String range = parts[1];
         String dataItems = parts[2];
         if (!dataItems.startsWith("(") || !dataItems.endsWith(")")) {
-            connectionIO.writeMessage(tag + " BAD Data items arguments");
+            connectionIO.sendMessage(tag + " BAD Data items arguments");
             return;
         }
 
         List<Integer> rangeUid = getUidRange(range);
         if (rangeUid == null) {
-            connectionIO.writeMessage(tag + " BAD Invalid arguments");
+            connectionIO.sendMessage(tag + " BAD Invalid arguments");
             return;
         }
 
         for (Integer uid : rangeUid) {
             Message message = selectedMailbox.getMessageByUid(uid);
-            connectionIO.writeMessage("* " + message.getSequenceNumber(selectedMailbox) + " FETCH (UID " + uid
+            connectionIO.sendMessage("* " + message.getSequenceNumber(selectedMailbox) + " FETCH (UID " + uid
                     + " FLAGS (" + message.setFlagsToString()
                     + " BODY[] {" + message.size() + "}");
             for (String dataLine : message.getDataLines()) {
-                connectionIO.writeMessage(dataLine);
+                connectionIO.sendMessage(dataLine);
             }
-            connectionIO.writeMessage(")");
-            connectionIO.writeMessage(tag + " OK FETCH completed");
+            connectionIO.sendMessage(")");
         }
+        connectionIO.sendMessage(tag + " OK FETCH completed");
     }
 
     // UID STORE range +FLAGS (\Deleted \Seen)
@@ -239,7 +244,7 @@ public class IMAPHandler extends Handler {
 
         String[] parts = args.split("\\s+", 4);
         if (parts.length < 4) {
-            connectionIO.writeMessage(tag + " BAD Invalid arguments");
+            connectionIO.sendMessage(tag + " BAD Invalid arguments");
             return;
         }
         String range = parts[1];
@@ -249,7 +254,7 @@ public class IMAPHandler extends Handler {
         List<Integer> rangeUid = getUidRange(range);
 
         if (!flags.startsWith("(") || !flags.endsWith(")")) {
-            connectionIO.writeMessage(tag + " BAD Missing values");
+            connectionIO.sendMessage(tag + " BAD Missing values");
             return;
         }
 
@@ -259,9 +264,15 @@ public class IMAPHandler extends Handler {
             case "+FLAGS":
                 for (Integer uid : rangeUid) {
                     Message message = selectedMailbox.getMessageByUid(uid);
-                    for (String f : flagsParts)
+                    if(message == null)
+                        System.err.println("null message at line 265");
+        
+                    for (String f : flagsParts){
+                        if(f == null)
+                            System.err.println("null string at line 265");
                         message.addFlag(f);
-                    connectionIO.writeMessage("* " + uid + " FETCH (FLAGS(" + message.setFlagsToString() + "))");
+                }
+                    connectionIO.sendMessage("* " + uid + " FETCH (FLAGS(" + message.setFlagsToString() + "))");
                 }
                 break;
             case "-FLAGS":
@@ -269,7 +280,7 @@ public class IMAPHandler extends Handler {
                     Message message = selectedMailbox.getMessageByUid(uid);
                     for (String f : flagsParts)
                         message.removeFlag(f);
-                    connectionIO.writeMessage("* " + uid + " FETCH (FLAGS(" + message.setFlagsToString() + "))");
+                    connectionIO.sendMessage("* " + uid + " FETCH (FLAGS(" + message.setFlagsToString() + "))");
                 }
                 break;
             case "FLAGS":
@@ -279,15 +290,15 @@ public class IMAPHandler extends Handler {
                         message.resetFlags();
                         message.addFlag(f);
                     }
-                    connectionIO.writeMessage("* " + uid + " FETCH (FLAGS(" + message.setFlagsToString() + "))");
+                    connectionIO.sendMessage("* " + uid + " FETCH (FLAGS(" + message.setFlagsToString() + "))");
                 }
                 break;
             default:
-                connectionIO.writeMessage(tag + " BAD Invalid arguments");
+                connectionIO.sendMessage(tag + " BAD Invalid arguments");
                 return;
         }
 
-        connectionIO.writeMessage(tag + " OK UID STORE completed");
+        connectionIO.sendMessage(tag + " OK UID STORE completed");
     }
 
     private void handleExpunge(String tag) {
@@ -297,9 +308,9 @@ public class IMAPHandler extends Handler {
         List<Integer> sequenceIndex = selectedMailbox.expunge();
         MailStore.expungeMailbox(user, selectedMailbox);
         for (Integer i : sequenceIndex)
-            connectionIO.writeMessage("* " + i + " EXPUNGE");
+            connectionIO.sendMessage("* " + i + " EXPUNGE");
 
-        connectionIO.writeMessage(tag + " OK EXPUNGE completed");
+        connectionIO.sendMessage(tag + " OK EXPUNGE completed");
     }
 
     private void handleClose(String tag) {
@@ -308,10 +319,11 @@ public class IMAPHandler extends Handler {
 
         selectedMailbox.expunge();
         MailStore.expungeMailbox(user, selectedMailbox);
+        MailStore.saveMailbox(user, selectedMailbox);
         selectedMailbox = null;
         state = CONNECTED;
 
-        connectionIO.writeMessage(tag + " OK CLOSE completed");
+        connectionIO.sendMessage(tag + " OK CLOSE completed");
     }
 
     private boolean isValidState(String tag, String command) {
@@ -353,11 +365,11 @@ public class IMAPHandler extends Handler {
                     return true;
                 break;
             default:
-                connectionIO.writeMessage(tag + " BAD Command is not a valid command");
+                connectionIO.sendMessage(tag + " BAD Command is not a valid command");
                 return false;
         }
 
-        connectionIO.writeMessage(tag + " BAD Command cannot be executed in this state");
+        connectionIO.sendMessage(tag + " BAD Command cannot be executed in this state");
         return false;
     }
 

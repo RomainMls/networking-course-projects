@@ -44,30 +44,25 @@ public class SMTPTransmitter {
             // Lire le greeting
             connectionIO.readLine();
 
-            connectionIO.writeMessage("HELO " + localDomain);
+            connectionIO.sendMessage("HELO " + localDomain);
             connectionIO.readLine();
 
-            connectionIO.writeMessage("MAIL FROM:<" + message.getFrom() + ">");
+            connectionIO.sendMessage("MAIL FROM:<" + message.getFrom() + ">");
             connectionIO.readLine();
 
-            connectionIO.writeMessage("RCPT TO:<" + rcpt + ">");
+            connectionIO.sendMessage("RCPT TO:<" + rcpt + ">");
             connectionIO.readLine();
 
-            connectionIO.writeMessage("DATA");
+            connectionIO.sendMessage("DATA");
             connectionIO.readLine();
-
-            connectionIO.writeMessage("From: " + message.getFrom());
-            connectionIO.writeMessage("To: " + rcpt);
-            connectionIO.writeMessage("Subject: " + message.getSubject());
-            connectionIO.writeMessage("");
 
             for (String dataLine : message.getDataLines())
-                connectionIO.writeMessage(dataLine);
+                connectionIO.sendMessage(dataLine);
 
-            connectionIO.writeMessage(".");
+            connectionIO.sendMessage(".");
             connectionIO.readLine();
 
-            connectionIO.writeMessage("QUIT");
+            connectionIO.sendMessage("QUIT");
             connectionIO.readLine();
 
             connectionIO.close();

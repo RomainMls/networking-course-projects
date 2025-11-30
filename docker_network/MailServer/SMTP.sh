@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SERVER="localhost"
-PORT="999"
+PORT="587"
 SENDER="testuser@uliege.be"
 RECIPIENT="dcd@uliege.be"
 RECIPIENT1="rom@uliege.be"

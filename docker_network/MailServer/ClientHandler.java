@@ -17,7 +17,7 @@ public class ClientHandler implements Runnable {
         try {
             socket.setSoTimeout(180000);
         } catch (SocketException e) {
-            System.out.println("Client socket timeout Exception : " + e.getMessage());
+            System.err.println("Client socket timeout Exception : " + e.getMessage());
         }
     }
 
@@ -45,6 +45,7 @@ public class ClientHandler implements Runnable {
             handler.handleSession();
 
         connectionIO.close();
+        System.out.println(protocol.toString() + " connection closed");
 
     }
 }

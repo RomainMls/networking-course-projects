@@ -18,6 +18,7 @@ public class MailServer {
         DOMAIN = args[0];
         MAXTHREADS = Integer.valueOf(args[1]);
 
+        System.out.println("Starting mailserver: " + DOMAIN);
         ExecutorService threadPool = Executors.newFixedThreadPool(MAXTHREADS);
 
         // Threads listening on each dedicated ports
@@ -45,7 +46,7 @@ public class MailServer {
 
                     }
                 } catch (IOException e) {
-                    System.out.println("Could not start " + protocol.toString() + " server: " + e.getMessage());
+                    System.err.println("Could not start " + protocol.toString() + " server: " + e.getMessage());
                 }
             }
         };

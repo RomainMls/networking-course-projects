@@ -33,7 +33,7 @@ public class Message {
         List<Message> messages = mailbox.getAllMessages();
         for (int i = 0; i < messages.size(); i++) {
             if (messages.get(i).equals(this)) {
-                return i;
+                return i + 1;
             }
         }
         return -1;

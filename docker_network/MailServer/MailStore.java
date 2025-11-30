@@ -20,7 +20,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Set;
 /*
  *
     metadata.txt
@@ -81,7 +80,8 @@ public class MailStore {
         return mailbox;
     }
 
-    public static void saveMailbox(User user, String mailboxName, Mailbox mailbox) {
+    public static void saveMailbox(User user, Mailbox mailbox) {
+        String mailboxName = mailbox.getName();
         String path = createPathMailboxFromUser(user, mailboxName);
         new File(path).mkdir();
 
@@ -188,6 +188,10 @@ public class MailStore {
         List<Message> allMessages = mailbox.getAllMessages();
 
         for (String mailFile : mailFiles) {
+            if(mailFile == null){
+
+                continue;
+            }
             boolean exists = false;
             String name = mailFile;
             for (Message message : allMessages) {
@@ -197,7 +201,6 @@ public class MailStore {
                 }
             }
             if (!exists) {
-                System.out.println(mailFile);
                 File file = new File(createPathMailboxFromUser(user, mailboxName).concat(mailFile));
                 file.delete();
             }

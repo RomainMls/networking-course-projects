@@ -16,7 +16,7 @@ public class ConnectionIO {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = socket.getOutputStream();
         } catch (IOException e) {
-            System.out.println("Error while getting input stream: " + e.getMessage());
+            System.err.println("Error while getting input stream: " + e.getMessage());
         }
     }
 
@@ -29,23 +29,26 @@ public class ConnectionIO {
                 return null;
 
         } catch (SocketTimeoutException e) {
-            System.out.println("Client silent too long time: " + e.getMessage());
+            System.err.println("Client silent too long time: " + e.getMessage());
             return null;
         } catch (IOException e) {
-            System.out.println("Error while reading input stream: " + e.getMessage());
+            System.err.println("Error while reading input stream: " + e.getMessage());
             return null;
         }
+        System.out.println("Int:\t" + socket + ": " + line);
         return line;
     }
 
-    public void writeMessage(String message) {
+    public void sendMessage(String message) {
         try {
             message += "\r\n";
             out.write(message.getBytes());
             out.flush();
         } catch (IOException e) {
-            System.out.println("Error while sending bytes through the socket: " + e.getMessage());
+            System.err.println("Error while sending bytes through the socket: " + e.getMessage());
+            return;
         }
+        System.out.println("Out:\t" + socket + ": " + message);
     }
 
     public void close() {
@@ -57,7 +60,7 @@ public class ConnectionIO {
             if (socket != null)
                 socket.close();
         } catch (IOException e) {
-            System.out.println("Error while closing connection" + e.getMessage());
+            System.err.println("Error while closing connection" + e.getMessage());
         }
     }
 
