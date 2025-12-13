@@ -11,3 +11,4 @@ run-test: clean
 clean:
 	sudo rm -rf mailstore
 	rm -f *.class
+

@@ -9,20 +9,37 @@ import java.util.List;
 
 public class POP3Handler extends Handler {
     private int seq = 0;
+    /*
+     * 0 = Server has greeted, waiting for user login
+     * 1 = waiting for user password
+     * 2 = user logged in, waiting for STAT
+     * 3 = STAT performed, waiting for LIST
+     * 4 = expecting for RETR, DELE or UIDL
+     */
     private User user;
     private Mailbox mailbox;
     private List<Message> messages;
     private int totalBytes;
 
+    /*
+     * Provides a session loop that handles a client's input according to the POP3 protocol.
+     */
     public POP3Handler(ConnectionIO connecionIO) {
         super(connecionIO);
     }
 
+    /*
+     * Sends the initial POP3 greeting required to initiate the session.
+     */
     @Override
     public void sendGreeting() {
         connectionIO.sendMessage("+OK POP3 server ready");
     }
 
+    /*
+     * Processes a single POP3 command, responds to client and updates
+     * handler state accordingly.
+     */
     @Override
     public void handleCommand(String command) {
         if (command == null) {
@@ -143,6 +160,8 @@ public class POP3Handler extends Handler {
                 connectionIO.sendMessage("+OKIDs\r\n.");
                 return;
         }
+        // Command not identified
         connectionIO.sendMessage("BAD");
     }
 }
+

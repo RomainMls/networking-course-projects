@@ -21,44 +21,74 @@ public class Mailbox {
     private int nextUID = 1;
     private int UIDVALIDITY;
 
+    /*
+     * Initializes a mailbox with the given name and an empty list of messages
+     */
     public Mailbox(String name) {
         this.name = name;
     }
 
+    /*
+     * Sets the UID validity of the mailbox
+     */
     public void setUidValidity(int uidValidity) {
         this.UIDVALIDITY = uidValidity;
     }
 
+    /*
+     * Sets the next UID to assign to the next message
+     */
     public void setNextUid(int nextUid) {
         this.nextUID = nextUid;
     }
 
+    /*
+     * Return the UID validity
+     */
     public int getUidValidity() {
         return UIDVALIDITY;
     }
 
+    /*
+     * Return the UID that will be assigned to the next message
+     */
     public int getUidNext() {
         return nextUID;
     }
 
+    /*
+     * Return the name of the mailbox
+     */
     public String getName() {
         return name;
     }
 
+    /*
+     * Return all messages currently in the mailbox in the form of a list.
+     */
     public List<Message> getAllMessages() {
         return this.messages;
     }
 
+    /*
+     * Adds a message to the list of messages in the list
+     */
     public void addMessage(Message message) {
         message.setUid(nextUID);
         nextUID++;
         messages.add(message);
     }
 
+    /*
+     * adds externally loaded message without modifying UID sequence
+     */
     public void addLoadedMessage(Message message) {
         messages.add(message);
     }
 
+    /*
+     * Return the message which has the corresponding uid
+     */
     public Message getMessageByUid(int uid) {
         for (Message message : messages) {
             if (uid == message.getUid())
@@ -67,6 +97,9 @@ public class Mailbox {
         return null;
     }
 
+    /*
+     * Gets the message at position 'index' of the list of messages
+     */
     public Message getMessageByIndex(int index) {
         return messages.get(index - 1);
     }
@@ -94,3 +127,4 @@ public class Mailbox {
         return messages.size();
     }
 }
+

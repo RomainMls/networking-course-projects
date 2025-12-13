@@ -21,12 +21,15 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /*
+     * Handles the client connection for the protocl given, and closes the connection.
+     */
     @Override
     public void run() {
         System.out.println("New " + protocol.toString() + " connection");
 
         ConnectionIO connectionIO = new ConnectionIO(socket);
-        Handler handler = null;
+        Handler handler;
 
         switch (protocol) {
             case SMTP:
@@ -39,13 +42,13 @@ public class ClientHandler implements Runnable {
                 handler = new IMAPHandler(connectionIO);
                 break;
             default:
-                break;
+                return;
         }
-        if (handler != null)
-            handler.handleSession();
+        handler.handleSession();
 
         connectionIO.close();
         System.out.println(protocol.toString() + " connection closed");
 
     }
 }
+

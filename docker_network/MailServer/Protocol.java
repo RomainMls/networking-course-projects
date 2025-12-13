@@ -3,6 +3,9 @@ enum Protocol {
     POP3,
     IMAP;
 
+    /*
+     * returns the port associated with this protocol
+     */
     public int getPort() {
         switch (this) {
             case SMTP:
@@ -16,3 +19,4 @@ enum Protocol {
         }
     }
 }
+

@@ -9,15 +9,31 @@ public abstract class Handler {
     protected ConnectionIO connectionIO;
     protected boolean connectionActive;
 
+    /*
+     * Provides a session loop that handles a client's input according to a protocol.
+     */
     public Handler(ConnectionIO connectionIO) {
         this.connectionIO = connectionIO;
         this.connectionActive = true;
     }
 
+    /*
+     * Sends the initial protocol greeting required to initiate the session.
+     */
     public abstract void sendGreeting();
 
+    /*
+     * Processes a single protol command, responds to client and updates
+     * handler state accordingly.
+     */
     public abstract void handleCommand(String command);
 
+    /*
+     * Drives the entire lifecycle of the client's session
+     * - Sends the initial greeting
+     * - Continuously reads messages from the client and forwards the message to handleCommand
+     * - Terminates the loop if the client closes the connection or if the connection is inactive
+     */
     public void handleSession() {
         sendGreeting();
         while (connectionActive) {
@@ -28,3 +44,4 @@ public abstract class Handler {
         }
     }
 }
+

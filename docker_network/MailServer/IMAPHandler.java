@@ -19,16 +19,26 @@ public class IMAPHandler extends Handler {
     private final static int CONNECTED = 1;
     private final static int SELECTED = 2;
 
+    /*
+     * Provides a session loop that handles a client's input according to IMAP protocol.
+     */
     public IMAPHandler(ConnectionIO connecionIO) {
         super(connecionIO);
     }
 
+    /*
+     * Sends the initial IMAP greeting required to initiate the session.
+     */
     @Override
     public void sendGreeting() {
         connectionIO.sendMessage("* OK IMAP server ready");
 
     }
 
+    /*
+     * Processes a single IMAP command, responds to client and updates
+     * handler state accordingly.
+     */
     @Override
     public void handleCommand(String command) {
         if (command == null) {
@@ -88,6 +98,9 @@ public class IMAPHandler extends Handler {
         }
     }
 
+    /*
+     * Handles the IMAP capability command, responds to the client accordingly
+     */
     private void handleCapability(String tag) {
         if (!isValidState(tag, "CAPABILITY"))
             return;
@@ -95,15 +108,22 @@ public class IMAPHandler extends Handler {
         connectionIO.sendMessage(tag + " OK CAPABILITY completed");
     }
 
+    /*
+     * Handles the IMAP noop command, responds to the client accordingly
+     */
     private void handleNoop(String tag) {
         if (!isValidState(tag, "NOOP"))
             return;
         connectionIO.sendMessage(tag + " OK NOOP completed");
     }
 
+    /*
+     * Handles the IMAP login command, responds to the client accordingly
+     */
     private void handleLogin(String tag, String args) {
         if (!isValidState(tag, "LOGIN"))
             return;
+
         String parts[] = args.split("\\s+");
         if (parts.length != 2) {
             connectionIO.sendMessage(tag + " BAD Invalid arguments");
@@ -139,17 +159,25 @@ public class IMAPHandler extends Handler {
         MailStore.createMailboxIfNotExists(user, "INBOX");
     }
 
+    /*
+     * Handles the IMAP logout command, responds to the client accordingly
+     */
     private void handleLogout(String tag) {
         if (!isValidState(tag, "LOGOUT"))
             return;
+
         connectionIO.sendMessage("* BYE IMAP server logging out");
 
         if(selectedMailbox != null)
             MailStore.saveMailbox(user, selectedMailbox);
+
         connectionActive = false;
         connectionIO.sendMessage(tag + " OK LOGOUT completed");
     }
 
+    /*
+     * Handles the IMAP list command, responds to the client accordingly
+     */
     private void handleList(String tag, String args) {
         if (!isValidState(tag, "LIST"))
             return;
@@ -172,6 +200,9 @@ public class IMAPHandler extends Handler {
         connectionIO.sendMessage(tag + " OK LIST completed");
     }
 
+    /*
+     * Handles the IMAP select command, responds to the client accordingly
+     */
     private void handleSelect(String tag, String args) {
         if (!isValidState(tag, "SELECT"))
             return;
@@ -192,6 +223,9 @@ public class IMAPHandler extends Handler {
         state = SELECTED;
     }
 
+    /*
+     * Handles the IMAP UID command, responds to the client accordingly
+     */
     private void handleUid(String tag, String args) {
         String[] parts = args.split("\\s+", 2);
         if (parts.length < 2) {
@@ -208,6 +242,9 @@ public class IMAPHandler extends Handler {
         }
     }
 
+    /*
+     * Handles the IMAP UID FETCH command, responds to the client accordingly
+     */
     private void handleUidFetch(String tag, String args) {
         if (!isValidState(tag, "UID"))
             return;
@@ -276,7 +313,7 @@ public class IMAPHandler extends Handler {
                     Message message = selectedMailbox.getMessageByUid(uid);
                     if(message == null)
                         System.err.println("null message at line 265");
-        
+
                     for (String f : flagsParts){
                         if(f == null)
                             System.err.println("null string at line 265");
@@ -311,6 +348,9 @@ public class IMAPHandler extends Handler {
         connectionIO.sendMessage(tag + " OK UID STORE completed");
     }
 
+    /*
+     * Handles the IMAP expunge command, responds to the client accordingly
+     */
     private void handleExpunge(String tag) {
         if (!isValidState(tag, "EXPUNGE"))
             return;
@@ -323,6 +363,9 @@ public class IMAPHandler extends Handler {
         connectionIO.sendMessage(tag + " OK EXPUNGE completed");
     }
 
+    /*
+     * Handles the IMAP close command, responds to the client accordingly
+     */
     private void handleClose(String tag) {
         if (!isValidState(tag, "CLOSE"))
             return;
@@ -336,6 +379,9 @@ public class IMAPHandler extends Handler {
         connectionIO.sendMessage(tag + " OK CLOSE completed");
     }
 
+    /*
+     * true iff the command is a valid IMAP command
+     */
     private boolean isValidState(String tag, String command) {
         switch (command) {
             case "CAPABILITY":
@@ -383,6 +429,10 @@ public class IMAPHandler extends Handler {
         return false;
     }
 
+    /*
+     * Return the list of valid UID integers of the user's mailbox
+     * in the range in the IMAP format
+     */
     private List<Integer> getUidRange(String range) {
         /*
          * Possible cases :
@@ -427,7 +477,11 @@ public class IMAPHandler extends Handler {
 
     }
 
+    /*
+     * true iff string is a numeric value
+     */
     private boolean isNumeric(String string) {
         return string != null && string.matches("\\d+");
     }
 }
+

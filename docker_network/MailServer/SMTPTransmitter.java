@@ -18,47 +18,23 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class SMTPTransmitter {
-    private String localDomain;
 
-    public SMTPTransmitter(String domain) {
-        System.out.println("new SMTPHandler for domain: " + domain);
-        this.localDomain = domain;
-    }
-
-    public void forward(Message message, String rcpt) {
-        if (!rcpt.contains("@")){
-            System.err.println("Can't forward following adress: " + rcpt);
-            return;
-        }
-
-        String rcptDomain;
-        String[] parts = rcpt.split("@");
-        if (parts.length == 2)
-            rcptDomain = parts[1];
-
-        else{
-            System.err.println("Can't forward following adress: " + rcpt);
-            return;
-        }
-
-        System.out.println("Trying to resolve adress: " + rcpt);
-        String host = DomainResolver.resolveSmtpServer(rcptDomain);
-        if (host == null){
-            System.err.println("Failed to resolve adress: " + rcpt);
-            return;
-        }
-
+    /*
+     * Transfers a message to a remote host (given by IP) via SMTP.
+     * The message recipient is given by rcpt.
+     */
+    public static void forward(Message msg, String rcpt, String IP){
         try {
-            Socket socket = new Socket(host, 25);
+            Socket socket = new Socket(IP, 25);
             ConnectionIO connectionIO = new ConnectionIO(socket);
 
             // Lire le greeting
             connectionIO.readLine();
 
-            connectionIO.sendMessage("HELO " + localDomain);
+            connectionIO.sendMessage("HELO " + MailServer.getDomain());
             connectionIO.readLine();
 
-            connectionIO.sendMessage("MAIL FROM:<" + message.getFrom() + ">");
+            connectionIO.sendMessage("MAIL FROM:<" + msg.getFrom() + ">");
             connectionIO.readLine();
 
             connectionIO.sendMessage("RCPT TO:<" + rcpt + ">");
@@ -67,7 +43,7 @@ public class SMTPTransmitter {
             connectionIO.sendMessage("DATA");
             connectionIO.readLine();
 
-            for (String dataLine : message.getDataLines())
+            for (String dataLine : msg.getDataLines())
                 connectionIO.sendMessage(dataLine);
 
             connectionIO.sendMessage(".");
@@ -81,6 +57,6 @@ public class SMTPTransmitter {
         } catch (IOException e) {
             System.err.println("Error while SMTP forwarding : " + e.getMessage());
         }
-
     }
 }
+

@@ -14,6 +14,9 @@ public class User {
         this.userName = userName;
     }
 
+    /*
+     * true iff the user corresponds to an existing account
+     */
     public boolean userExists() {
         for (String email : allowedUsers) {
             if (userName.equals(email))
@@ -22,14 +25,23 @@ public class User {
         return false;
     }
 
+    /*
+     * true iff password is correct for this user
+     */
     public boolean checkPassword(String password) {
         return password.equals("password");
     }
 
+    /*
+     * true iff the user domain is this server's domain
+     */
     public boolean checkDomain() {
         return getUserDomain().equals(MailServer.getDomain());
     }
 
+    /*
+     * returns the domain of this user mail adress
+     */
     public String getUserDomain() {
         String[] split = userName.split("@");
         if(split == null)
@@ -38,6 +50,9 @@ public class User {
         return split[1];
     }
 
+    /*
+     * get the username of the email address
+     */
     public String getUserName() {
         return userName.split("@")[0];
     }
@@ -47,3 +62,4 @@ public class User {
         return userName;
     }
 }
+

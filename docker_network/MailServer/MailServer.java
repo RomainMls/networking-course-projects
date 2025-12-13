@@ -31,6 +31,11 @@ public class MailServer {
         IMAPThread.start();
     }
 
+    /*
+     * Create a runnable thread that accepts and handles client connection 
+     * for the given protocol. The threads created for each client connection
+     * are executed by the threadpool.
+     */
     private static Thread createThread(Protocol protocol, ExecutorService threadPool) {
         Thread thread = new Thread() {
             public void run() {
@@ -53,7 +58,9 @@ public class MailServer {
         return thread;
     }
 
+    // return the domain of the running server
     public static String getDomain() {
         return DOMAIN;
     }
 }
+

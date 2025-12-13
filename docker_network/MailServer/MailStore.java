@@ -56,6 +56,10 @@ import java.util.ArrayList;
  */
 
 public class MailStore {
+
+    /*
+     *
+     */
     public static Mailbox loadMailbox(User user, String mailboxName) {
         String path = createPathMailboxFromUser(user, mailboxName);
         createMailboxIfNotExists(user, mailboxName);
@@ -80,6 +84,12 @@ public class MailStore {
         return mailbox;
     }
 
+    /*
+     * Stores the mailbox and all of the messages on the filesystem.
+     * Writes metadata file containing UID validity, next UID.
+     * Per message file with the name "<uid>.msg".
+     * It overwrites previous stored messages and metadata file.
+     */
     public static void saveMailbox(User user, Mailbox mailbox) {
         String mailboxName = mailbox.getName();
         String path = createPathMailboxFromUser(user, mailboxName);
@@ -100,17 +110,20 @@ public class MailStore {
             try (BufferedWriter messageWriter = new BufferedWriter(new FileWriter(messagePath))) {
                 messageWriter.write(messageContent.toString());
             } catch (IOException e) {
-                System.out.println("Error while writing message in file : " + e.getMessage());
+                System.err.println("Error while writing message in file : " + e.getMessage());
             }
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(path.concat("metadata.txt")))) {
             writer.write(content.toString());
         } catch (IOException e) {
-            System.out.println("Error while writing mailbox : " + e.getMessage());
+            System.err.println("Error while writing mailbox : " + e.getMessage());
         }
     }
 
+    /*
+     * Returns the list of mailboxes names for this specific user
+     */
     public static String[] getListMailboxes(User user) {
         File folder = new File(createPathFromUser(user));
 
@@ -125,6 +138,9 @@ public class MailStore {
         return mailboxes;
     }
 
+    /*
+     * Return the list of messages file name of the mailbox
+     */
     public static List<String> getListMails(User user, String mailboxName) {
         File folder = new File(createPathMailboxFromUser(user, mailboxName));
 
@@ -141,6 +157,11 @@ public class MailStore {
         return files;
     }
 
+    /*
+     * Creates a new mailbox for user.
+     * Creates the directory of the file system if not existant.
+     * Initializes metadata.
+     */
     public static void createMailbox(User user, String mailboxName) {
         String path = createPathMailboxFromUser(user, mailboxName);
         File directory = new File(path);
@@ -161,6 +182,9 @@ public class MailStore {
 
     }
 
+    /*
+     * Deletes a mailbox from the filesystem
+     */
     public static void deleteMailbox(User user, String mailboxName) {
         String[] listMaiboxes = getListMailboxes(user);
         for (String mailboxes : listMaiboxes) {
@@ -172,6 +196,9 @@ public class MailStore {
         }
     }
 
+    /*
+     * Renames a mailbox on the filesystem
+     */
     public static void renameMailbox(User user, String oldName, String newName) {
         String oldPath = createPathMailboxFromUser(user, oldName);
         String newPath = createPathMailboxFromUser(user, newName);
@@ -182,6 +209,9 @@ public class MailStore {
         }
     }
 
+    /*
+     * Synchronization between a RAM mailbox and a filesystem mailbox for the expunge function.
+     */
     public static void expungeMailbox(User user, Mailbox mailbox) {
         String mailboxName = mailbox.getName();
         List<String> mailFiles = getListMails(user, mailboxName);
@@ -230,6 +260,9 @@ public class MailStore {
         }
     }
 
+    /*
+     * Creates a mailbox if the directory for this mailbox does not exist. 
+     */
     public static void createMailboxIfNotExists(User user, String mailboxName) {
         File file = new File(createPathMailboxFromUser(user, mailboxName));
         if (!file.exists()) {
@@ -237,14 +270,23 @@ public class MailStore {
         }
     }
 
+    /*
+     * Creates the path for this user for the filesystem
+     */
     private static String createPathFromUser(User user) {
         return "mailstore/".concat(user.getUserDomain()).concat("/").concat(user.getUserName().concat("/"));
     }
 
+    /*
+     * Creates the path for this mailbox of user for the filesystem
+     */
     private static String createPathMailboxFromUser(User user, String mailboxName) {
         return createPathFromUser(user).concat(mailboxName).concat("/");
     }
 
+    /*
+     * Deletes a directory from the filesystem.
+     */
     private static boolean deleteDirectory(String path) {
         File toDelete = new File(path);
 
@@ -257,6 +299,9 @@ public class MailStore {
         return toDelete.delete();
     }
 
+    /*
+     * Reads the metadata file on the filesystem to create the corresponding mailbox.
+     */
     private static Mailbox readMetadata(Mailbox mailbox, BufferedReader reader) throws IOException {
         String line;
         line = reader.readLine();
@@ -289,6 +334,9 @@ public class MailStore {
         return mailbox;
     }
 
+    /*
+     * Loads the all the contents of a message from memory
+     */
     private static Message readMessage(Message message, BufferedReader reader) throws IOException {
         String line;
 
@@ -299,3 +347,4 @@ public class MailStore {
         return message;
     }
 }
+

@@ -10,6 +10,11 @@ public class ConnectionIO {
     private OutputStream out;
     private Socket socket;
 
+    /*
+     * Represents a IO handler for a single connection socket.
+     * Handles the dedicated input reader and output stream.
+     * Not thread safe.
+     */
     public ConnectionIO(Socket socket) {
         this.socket = socket;
         try {
@@ -20,6 +25,10 @@ public class ConnectionIO {
         }
     }
 
+    /*
+     * Reads a single line from the connection, blocking until available or connection closed.
+     * In the latter case, the value of returned is null.
+     */
     public String readLine() {
 
         String line = null;
@@ -39,6 +48,10 @@ public class ConnectionIO {
         return line;
     }
 
+    /*
+     * Sends a message on the connection socket and additionally adds a CRLF.
+     * One side effect is that it flushed the socket's output stream.
+     */
     public void sendMessage(String message) {
         try {
             message += "\r\n";
@@ -51,6 +64,9 @@ public class ConnectionIO {
         System.out.println("Out:\t" + socket + ": " + message);
     }
 
+    /*
+     * Properly closes the connection socket and associated resources
+     */
     public void close() {
         try {
             if (in != null)
@@ -65,3 +81,4 @@ public class ConnectionIO {
     }
 
 }
+

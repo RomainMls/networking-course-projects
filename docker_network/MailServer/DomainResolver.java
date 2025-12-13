@@ -10,51 +10,35 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class DomainResolver {
-    public static String resolve(String domain, String typeRecord) {
-        if (!typeRecord.equals("MX") && !typeRecord.equals("A"))
-            return null;
-        else
-            try {
-                ProcessBuilder pb = new ProcessBuilder("dig", "+short", typeRecord, domain);
-                Process process = pb.start();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                String line = reader.readLine();
-                System.err.println("dig response for domain '" + domain + "': " + line);
 
-                if (line != null) {
-                    line = line.trim();
-                    String[] parts = line.split("\\s+");
-                    String host;
+    /*
+     * Resolves the IP address of the mail server for a domain
+     */
+    public static String resolveDomain(String domain){
+        try{
+            ProcessBuilder pb = new ProcessBuilder("dig", "+short", "MX", domain);
+            Process process = pb.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            process.waitFor();
+            String[] splitResponse = reader.readLine().split("\\s+");
+            if(splitResponse == null)
+                return null;
 
-                    if (parts.length == 2)
-                        host = parts[1];
-                    else
-                        host = line;
+            if(splitResponse.length != 2) return null;
 
-                    if (host.endsWith("."))
-                        host = host.substring(0, host.length() - 1);
-                    return host;
-                }
-            } catch (IOException e) {
-                System.out.println("Error while resolving " + typeRecord + " for : " + domain + " " + e.getMessage());
-            }
-        return null;
-    }
+            String mailServer = splitResponse[1];
 
-    public static String resolveSmtpServer(String domain) {
-        if (domain.equals(MailServer.getDomain()))
-            return null;
-
-        else {
-            String mx = resolve(domain, "MX");
-            if (mx != null)
-                return mx;
-            else {
-                String a = resolve(domain, "A");
-                if (a != null)
-                    return a;
-            }
+            ProcessBuilder pb2 = new ProcessBuilder("dig", "+short", mailServer);
+            Process process2 = pb2.start();
+            BufferedReader reader2 = new BufferedReader(new InputStreamReader(process2.getInputStream()));
+            process2.waitFor();
+            String finalIP = reader2.readLine();
+            return finalIP;
+        }
+        catch(IOException | InterruptedException  e){
+            System.out.println("Error while resolving for : " + domain + " " + e.getMessage());
         }
         return null;
     }
 }
+
