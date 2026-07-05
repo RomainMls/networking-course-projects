@@ -1,0 +1,10 @@
+Project2_slides.pdf
+Project2.pdf
+*.class
+.vscode/
+/var/lib/docker/
+/var/run/docker.sock
+docker_network/*/data/
+docker_network/*/storage/
+docker_network/*/volumes/
+docker_network/*/tmp/

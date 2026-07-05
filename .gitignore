@@ -1,10 +1,18 @@
-Project2_slides.pdf
-Project2.pdf
+﻿# Java
 *.class
+*.jar
+*.war
+*.ear
+
+# Runtime data
+mailstore/
+*.log
+
+# IDE / OS
 .vscode/
-/var/lib/docker/
-/var/run/docker.sock
-docker_network/*/data/
-docker_network/*/storage/
-docker_network/*/volumes/
-docker_network/*/tmp/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local environment
+.env
