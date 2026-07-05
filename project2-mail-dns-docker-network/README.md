@@ -18,6 +18,7 @@ The Java mail server listens on the standard mail ports and handles SMTP, POP3, 
 - `docker_network/MailServer/`: Java mail server source code and Dockerfile.
 - `docker_network/dns/`: DNS configuration for the simulated domains.
 - `docker_network/frr/`: router configuration files.
+- `report.pdf`: final report
 
 ## Build and Run
 
